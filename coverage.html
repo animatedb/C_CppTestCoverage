@@ -1,10 +1,31 @@
 <html>
-
-This is a very cheap implementation of a code coverage tool for C++ that works pretty
-well. It provides code coverage by instrumenting (modifying) the source code. It uses
-some cheap parsing, so may not well for some source code. It generally looks for
-open braces, conditional statements, case and default statements. The goal is very low
-impact to the program under test with no modification of the logic of the program.
+<h3>C_CppTestCoverage</h3>
+<p>
+This is a very cheap implementation of a code coverage tool for C or C++ that works pretty
+well. It provides code coverage by instrumenting (modifying) the source code. 
+</p><p>
+It uses some cheap parsing, so may not well for some source code. It generally looks for
+open braces, conditional statements, case and default statements. 
+</p><p>
+This code mainly works for C or C++ code where the statement is on a different
+line than the open brace, so it works for some K&R, GNU, Whitesmiths, etc.
+If the code has another style, it may have to be formatted first, or the
+parser needs to be modified to split the brace.
+</p><p>
+The goal is very low impact to the program under test with no modification of the
+logic of the program. It does this by keeping a table of counts, one count
+for each path in the code. Each time a path is executed, a counter is incremented.
+Paths are determined using braces or keywords. When the program is finished, it
+can update the statistics count file with the incremented counter values.
+The code is generally thread safe if an integer increment is atomic. If not, the
+code can be easily modified.
+</p><p>
+The filenames are not kept in the table in order to reduce memory usage.
+At the end of execution, a separate script is used to read the table and list the counts
+along with filenames.
+</p><p>
+See cCovDefinitions for a detailed list of steps to perform.
+</p>
 
 <h3>Download Python</h3>
 <p/>
@@ -17,23 +38,21 @@ This requires Python.
 <p/>
 The code coverage is performed in a few phases.
 <ul>
-<li>The code is instrumented and copied to another directory by running covInstr.py</li>
+<li>The code is instrumented and copied to another directory by running cCovInstr.py</li>
 <li>The copied code is compiled</li>
 <li>The code is run, and when the code finishes, will write an output file containing
 hit counts for the instrumented lines</li>
-<li>The statistics are displayed using covStats.py and the copied source code is
-modified to contain hit counts for each instrumented line</li>
+<li>The statistics are displayed using cCovStats.py and the copied source code is
+modified to contain hit counts for each instrumented line.</li>
 </ul>
 
 <h3>Instrumentation</h3>
-The covCommon.py source file has to be modified to target your source and output
-project directories. The covInstr.py source file is used to instrument the source code.
+The cCovDefinitions.py source file has to be modified to target your source and output
+project directories. The cCovInstr.py source file is used to instrument the source code.
 
 <ul>
-<li>Run IDLE.</li>
-<li>Select File/Open to open the covInstr.py file.</li>
-<li>Select Run/Run Module</li>
-<li>Enter covInstr() in the "Python Shell" window and press Enter</li>
+<li>Open a command console</li>
+<li>Run the cCovInstr.py script file.</li>
 </ul>
 
 For each line that is instrumented, a macro is inserted that increments a particular
@@ -42,53 +61,31 @@ values in the array have a particular data type with a certain number of bits, s
 hit counts may wrap. This file can be modified for a higher or lower value hit counts,
 depending on the amount of memory available. The file can also be modified to prevent
 wrap at the cost of speed for each instrumented line. The "coverage.h" file is generated
-by the covInstr.py file.
+by the cCovInstr.py file.
 
 <p/>
-A proper C++ parser is not used, so there are many things that will not be instrumented
+A proper C or C++ parser is not used, so there are some syntax formats that may not be instrumented
 properly.  For example an open brace in a comment or string literal can cause indent
 brace problems. An error will display for any file where the number of opening and closing braces
-are not equal. A single statement with no braces after a conditional will not be instrumented if
+are not equal, and the instrumented code can be compiled to find the error.
+A single statement with no braces after a conditional will not be instrumented if
 the conditional spans multiple lines. An attempt is made to prevent instrumentation
-of initialization of data in braces. For this to work properly, the brace or statememt must be on the
-line after the keyword. For example
-<table border="1">
-<tr><td>Doesn't work</td><td>Works</td></tr>
-<tr><td><pre>class x {</pre></td>
-	<td><pre>class x
-	{</pre></td></tr>
-<tr><td><pre>class x:
-	public y
-	{</pre></td>
-	<td><pre>class x: public y
-	{</pre></td></tr>
-</table>
+of initialization of data in braces. For this to work properly, the brace or statememt should be on the
+line after the keyword.
 
 Lines that are inside of a #ifdef will also be instrumented, so this may lower the coverage
-percentage.  To prevent lines in a certain ifdef from being instrumented, it is possible to
-use "//" at the beginning of a line.
+percentage.  To prevent lines in a certain ifdef or in comments from being instrumented, it is
+possible to use "//" at the beginning of a line.
 
 <h3>Execution</h3>
-<ul>
-<li>Copy non-instrumented source files necessary for the program under test</li>
-<li>Copy build files to a location that will allow building the instrumented files</li>
-<li>Add the coverage.cpp file to the build project for the program under test</li>
-<li>Build the program under test</li>
-<li>Run the program under test</li>
-</ul>
-
-On exit of the program under test, a destructor in the "coverage.cpp" file is run,
-which writes the array containing all of the hit counts for the instrumented lines.
-This file can also be modified in order to have different characteristics.
+Follow the steps described in cCovDefinitions.py.
 
 <h3>Statistics</h3>
-The covStats.py source file is used to analyze the output from the program under test.
+The cCovStats.py source file is used to analyze the output from the program under test.
 
 <ul>
-<li>Run IDLE.</li>
-<li>Select File/Open to open the covStats.py file</li>
-<li>Select Run/Run Module</li>
-<li>Enter covStats() in the "Python Shell" window and press Enter</li>
+<li>Open a command console</li>
+<li>Run the cCovStats.py script file</li>
 </ul>
 
 Coverage statistics are displayed for each source file and all files, but they are the percent coverage
@@ -102,3 +99,4 @@ Since it is possible to read the instrumented code, it is possible to delete or 
 out problem instrumentation code, but no hits will be generated, so may lower the coverage percentage.
 
 </html>
+
