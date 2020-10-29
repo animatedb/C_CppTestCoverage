@@ -1,4 +1,4 @@
-# CppTestCoverage
+# C_CppTestCoverage
 
 This is a simple Python based program that creates a copy of C or C++ files
 add adds some instrumentation to them. The modified executables will
