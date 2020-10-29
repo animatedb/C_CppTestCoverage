@@ -14,3 +14,4 @@ so it can also be used for optimization.
 * cCovStats.py - Reads the output from the executed C++ code and generates
  readable statistics.
 
+[coverage.html](coverage.html)
