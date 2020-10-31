@@ -8,15 +8,28 @@
 #    line than the open brace, so it works for some K&R, GNU, Whitesmiths, etc.
 #    If the code has another style, it may have to be formatted first, or the
 #    parser needs to be modified to split the brace.
-# 3. Run cCovInstr for selected (See srcPaths) projects and instrument the C++ files.
-# 4. Modify the build projects to compile and link the coverage.cpp or coverage.c
-#    in each project. In MSVC, just add the source file to the project.
-# 5. Build each instrumented project.
-# 6. Make sure the instrumented executables will be run by the tests.
-# 7. Run the tests. This will cause the executables to write the instrumented
+# 3. This step is optional. The copied source code can be modified later if desired.
+#    The following comments can be added to the original source code so that
+#    every time the code is instrumented, the original code will be modified to
+#    write the coverage file, and include the coverage code in the project.
+#    This should be placed where the program exits.
+#       // cCov: update_coverage();
+#    The following comment can be used to insert the line in the source.
+#    This can be placed in one file outside of any function definition.
+#       // cCov: #include "coverage.cpp"
+# 4. Run cCovInstr for selected (See srcPaths) projects and instrument the C++ files.
+# 5. This step is optional if the original source was modified using the
+#    "// cCov:" comments above. Otherwise modify one or multiple points in
+#    the instrumented source code to update the count statistics file by calling
+#    "update_coverage()". Modify the build projects to compile and link the
+#    coverage.cpp or coverage.c in each project. In MSVC, just add the source
+#    file to the project.
+# 6. Build each instrumented project.
+# 7. Make sure the instrumented executables will be run by the tests.
+# 8. Run the tests. This will cause the executables to write the instrumented
 #    hit counts.
-# 8. Run the cCovStats to create a readable file from the hit counts.
-# 9. View the coverageStats.txt file or the files in the Out (outPath) directory
+# 9. Run the cCovStats to create a readable file from the hit counts.
+# 10. View the coverageStats.txt file or the files in the Out (outPath) directory
 #    that contain hit counts for each path in the source files.
 
 # Where to get the source code that will be copied and instrumented.
