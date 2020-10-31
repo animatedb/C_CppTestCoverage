@@ -1,7 +1,7 @@
 # C_CppTestCoverage
 
 This is a simple Python based program that creates a copy of C or C++ files
-add adds some instrumentation to them. The modified executables will
+and adds some instrumentation to them. The modified executables will
 save files that can be analyzed later by a Python based statistics module.
 This software keeps track of the number of times each path has been taken
 so it can also be used for optimization.
