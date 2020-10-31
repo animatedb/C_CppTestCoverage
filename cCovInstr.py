@@ -61,7 +61,9 @@ def covInstrSourceFile(srcPath:str, instrPath:str, fileNum:int) -> None:
     lineNum = 0
     startInStatementLevel = 0
     inStatement = False
-    skipBraceLevel = False
+    # Indicates whether to add instrumentation for a brace. For example, if
+    # it is data initialization, then instrumentation should not be added.
+    allowBraceInstr = True
     inStructOrSwitch = False
     inf = open(srcPath, 'r')
 
@@ -78,10 +80,15 @@ def covInstrSourceFile(srcPath:str, instrPath:str, fileNum:int) -> None:
         outf = None
     prevLine = ""
     for origLine in inf:
+        allowBraceInstr = True
         codeLine = origLine  # codeLine does not contain comment lines. "//"
         outLine = origLine
-        if "//" in origLine:
-            codeLine = origLine[0:origLine.find("//")] + "\n"
+        commentStartPos = origLine.find("//")
+        if commentStartPos != -1:
+            codeLine = origLine[0:commentStartPos] + "\n"
+            insertCodePos = origLine.find('cCov:')
+            if insertCodePos != -1:
+                outLine = origLine[insertCodePos + len('cCov:'):]
         lineNum += 1
         if braceLevel == startInStatementLevel:
             inStatement = False
@@ -93,12 +100,14 @@ def covInstrSourceFile(srcPath:str, instrPath:str, fileNum:int) -> None:
             instrSingleLine = False
         else:
             instrSingleLine = checkInstrConditionalAndSingleLineStatement(prevLine, codeLine)
+        # Check to see how many braces are on a single line. If there is "{ code }", then
+        # allow it, and prevent adding any extra instrumentation. Otherwise generate an error.
         if(inc + dec > 1):
             if(re.match('^\s*\{.*\}\s*$', codeLine) and not prevLine.rstrip().endswith(',')):
                 outLine = instrExistingLine(codeLine, codeLine.index('{')+1, fileNum)
             elif DisplayWarnings:
                 print("Too many braces on a line: " + srcPath, lineNum, codeLine)
-            inStatement = True       # Prevent brace instrumentation below
+            allowBraceInstr = False       # Prevent brace instrumentation below
         if dec:
             braceLevel -= dec
         if instrSingleLine:
@@ -127,13 +136,9 @@ def covInstrSourceFile(srcPath:str, instrPath:str, fileNum:int) -> None:
             # don't instrument current brace level.
             # This pattern attempts to avoid some casts.
             if re.search('(^|[^A-Za-z_<\(])(class|struct|switch)([^A-Za-z_]|$)', prevLine):
-                skipBraceLevel = True
-            else:
-                skipBraceLevel = False
+                allowBraceInstr = False
             # Discard some common data declarations
-            if re.search('struct|static|typdef', codeLine):
-                skipBraceLevel = True
-            if not inStatement and not skipBraceLevel:
+            if not inStatement and allowBraceInstr:
                 instrNewLine(outf, fileNum)
         prevLine = codeLine
     inf.close()
@@ -293,4 +298,3 @@ def outputCoverageArray(coverageSrcPath, numFiles, maxLines):
 
 if __name__ == '__main__':
     covInstr()
-
